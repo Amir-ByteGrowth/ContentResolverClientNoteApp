@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
+<!--    permissions defined in content provider app become uses-permissions here-->
+<uses-permission android:name="com.example.contentproviderandconentresolver.READ_NOTES"/>
+<!--    we will add authority here , with which provider we are going to communicate with else content resolver can not communicate with this-->
+    <queries>
+        <provider android:authorities="com.example.contentproviderandconentresolver.provider"/>
+    </queries>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
