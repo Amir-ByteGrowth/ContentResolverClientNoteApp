@@ -1,5 +1,6 @@
 package com.example.contentresolverclientnoteapp.presentation.screens
 
+import android.content.ContentResolver
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,13 +40,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.contentresolverclientnoteapp.Note
-import kotlinx.coroutines.launch
+import com.example.contentresolverclientnoteapp.delete
 
-class MainScreen {
-}
+import com.example.contentresolverclientnoteapp.insertNote
+import com.example.contentresolverclientnoteapp.update
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -55,14 +58,21 @@ fun MainScreen(modifier: Modifier = Modifier,viewModel: MainViewModel) {
     val editNote = remember { mutableStateOf(Note(id = -1, title = "", desc = "")) }
     val isEdit = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     ModalBottomSheetLayout(
         modifier = Modifier.safeContentPadding(),
         sheetContent = {
             Form(note = editNote.value) { title, desc ->
                 if (isEdit.value) {
-                    TODO("update note")
+                    context.contentResolver.update(
+                        editNote.value.id, title = title, desc
+                    )
+                    isEdit.value = false
+                    editNote.value = Note(id = -1, title = "", desc = "")
                 } else {
-                    TODO("insert new note")
+                    context.contentResolver.insertNote(
+                        title, desc
+                    )
                 }
                 scope.launch { sheetState.hide() }
             }
@@ -122,7 +132,7 @@ fun MainScreen(modifier: Modifier = Modifier,viewModel: MainViewModel) {
                                     )
                                 }
                                 IconButton(onClick = {
-                                    TODO("delete note")
+                                    context.contentResolver.delete(it.id)
                                 }) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,

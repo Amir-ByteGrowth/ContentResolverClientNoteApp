@@ -3,7 +3,12 @@ package com.example.contentresolverclientnoteapp
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
+import android.database.ContentObserver
 import android.net.Uri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 
 
 val AUTHORITY = "com.example.contentproviderandconentresolver.provider"
@@ -31,7 +36,7 @@ fun getAllNotes(context: Context): List<Note> {
 }
 
 // content values are used to create request body that will be used by content resolver to give content provider
-fun ContentResolver.insertNot(title:String,desc:String){
+fun ContentResolver.insertNote(title: String, desc: String) {
     val values = ContentValues()
     values.put("title",title)
     values.put("desc",desc)
@@ -53,3 +58,18 @@ fun ContentResolver.delete(id:Int){
     val deleteUri = Uri.parse("content://$AUTHORITY/$NOTES_TABLE/$id")
     delete(deleteUri,null)
 }
+
+fun ContentResolver.observe(context: Context, uri: Uri) = callbackFlow<List<Note>> {
+
+    val observer = object : ContentObserver(null) {
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            val notes = getAllNotes(context)
+            trySend(notes)
+        }
+    }
+    registerContentObserver(uri, true, observer)
+
+    awaitClose {
+        unregisterContentObserver(observer)
+    }
+}.flowOn(Dispatchers.IO)
